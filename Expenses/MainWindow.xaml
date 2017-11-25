@@ -1,0 +1,195 @@
+﻿<Window x:Class="Expenses.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:command="http://www.galasoft.ch/mvvmlight"
+        xmlns:controls="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls.Input.Toolkit"
+        mc:Ignorable="d" Icon="../ico.ico" Title="Расходы"
+        Height="599" Width="990" DataContext="{Binding Main,Source={StaticResource Locator}}">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <command:EventToCommand Command="{Binding ApplicationClosingCommand}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <Viewbox Stretch="Fill">
+        <Grid Height="620" Width="980">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Content="Выберите период отображения, от:" Margin="5"/>
+                <DatePicker Grid.Column="1" Margin="5" FirstDayOfWeek="Monday" SelectedDate="{Binding FilterStartDateTime,Mode=TwoWay}"/>
+                <Label Content="Выберите период отображения, от:" Grid.Column="2" Margin="5"/>
+                <DatePicker Grid.Column="3" Margin="5" FirstDayOfWeek="Monday" SelectedDate="{Binding FilterEndDateTime,Mode=TwoWay}"/>
+                <Button Grid.Column="4" Content="Применить" Margin="5" Padding="5" Command="{Binding ApplyDateTimeFilterCommand}"/>
+                <Button Grid.Column="5" Content="Сбросить фильтр" Margin="5" Padding="5" Command="{Binding DropFilterCommand}"/>
+            </Grid>
+            <TabControl Grid.Row="1">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="SelectionChanged">
+                        <command:EventToCommand Command="{Binding TabControlSelectChangedCommand}" PassEventArgsToCommand="True"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+                <TabItem Header="Транзакции">
+                    <Grid Background="#FFE5E5E5">
+                        <DataGrid ItemsSource="{Binding ExpensesItems}" SelectedItem="{Binding DataGridSelectedItem}" SelectionMode="Extended" SelectionUnit="FullRow" CanUserAddRows="True" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" AlternatingRowBackground="LightGray" AlternationCount="2" AutoGenerateColumns="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Binding="{Binding DateTime,Converter={StaticResource DateTimeToStringConverter}}" Width="150">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Дата" TextAlignment="Center"/>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Binding="{Binding Amount}" Width="150">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Сумма" TextAlignment="Center"/>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                                <DataGridComboBoxColumn SelectedValueBinding="{Binding Type}" Width="150" ItemsSource="{Binding Source={StaticResource TransactionType}}">
+                                    <DataGridComboBoxColumn.Header>
+                                        <TextBlock Text="Тип" TextAlignment="Center"/>
+                                    </DataGridComboBoxColumn.Header>
+                                </DataGridComboBoxColumn>
+                                <DataGridTemplateColumn Header="Счет" Width="150" >
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Path=MoneySource, UpdateSourceTrigger=PropertyChanged}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+
+                                    <DataGridTemplateColumn.CellEditingTemplate>
+                                        <DataTemplate>
+                                            <controls:AutoCompleteBox ItemsSource="{Binding Path=DataContext.SourceItems, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Text="{Binding MoneySource, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsTextCompletionEnabled="True" FilterMode="Contains" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellEditingTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Binding="{Binding Comment}" Width="150">
+                                    <DataGridTextColumn.Header>
+                                        <TextBlock Text="Комментарий" TextAlignment="Center"/>
+                                    </DataGridTextColumn.Header>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="CellEditEnding">
+                                    <command:EventToCommand Command="{Binding CellEditEndingCommand}" PassEventArgsToCommand="True" />
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                        </DataGrid>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Статистика">
+                    <Grid Background="#FFE5E5E5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="314*"/>
+                        </Grid.ColumnDefinitions>
+                        <GroupBox Header="Поступления">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <DataGrid ItemsSource="{Binding IncomingMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" AlternatingRowBackground="Gray" AlternationCount="2" AutoGenerateColumns="False" >
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Binding="{Binding MoneySource}" Width="100">
+                                            <DataGridTextColumn.Header>
+                                                <TextBlock Text="Счет" TextAlignment="Center"/>
+                                            </DataGridTextColumn.Header>
+                                        </DataGridTextColumn>
+                                        <DataGridTextColumn Binding="{Binding Amount}" Width="100">
+                                            <DataGridTextColumn.Header>
+                                                <TextBlock Text="Сумма" TextAlignment="Center"/>
+                                            </DataGridTextColumn.Header>
+                                        </DataGridTextColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Label Content="{Binding TotalIncoming}" Grid.Row="1" ContentStringFormat="Итого: {0}"/>
+                            </Grid>
+                        </GroupBox>
+
+                        <GroupBox Header="Остатки" Grid.Column="1">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <DataGrid ItemsSource="{Binding BalanceMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" AlternatingRowBackground="Gray" AlternationCount="2" AutoGenerateColumns="False" >
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Binding="{Binding MoneySource}" Width="100">
+                                            <DataGridTextColumn.Header>
+                                                <TextBlock Text="Счет" TextAlignment="Center"/>
+                                            </DataGridTextColumn.Header>
+                                        </DataGridTextColumn>
+                                        <DataGridTextColumn Binding="{Binding Amount}" Width="100">
+                                            <DataGridTextColumn.Header>
+                                                <TextBlock Text="Сумма" TextAlignment="Center"/>
+                                            </DataGridTextColumn.Header>
+                                        </DataGridTextColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Label Content="{Binding TotalBalance}" Grid.Row="1" ContentStringFormat="Итого: {0}"/>
+                            </Grid>
+                        </GroupBox>
+
+
+                        <GroupBox Header="Расходы" Grid.Column="2">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <DataGrid ItemsSource="{Binding ExpensesMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" AlternatingRowBackground="Gray" AlternationCount="2" AutoGenerateColumns="False" >
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Binding="{Binding DateTime}" Width="150">
+                                            <DataGridTextColumn.Header>
+                                                <TextBlock Text="Дата" TextAlignment="Center"/>
+                                            </DataGridTextColumn.Header>
+                                        </DataGridTextColumn>
+                                        <DataGridTextColumn Binding="{Binding Amount}" Width="100">
+                                            <DataGridTextColumn.Header>
+                                                <TextBlock Text="Сумма" TextAlignment="Center"/>
+                                            </DataGridTextColumn.Header>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTemplateColumn Header="Счет" Width="100" >
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding MoneySource, UpdateSourceTrigger=PropertyChanged}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+
+                                            <DataGridTemplateColumn.CellEditingTemplate>
+                                                <DataTemplate>
+                                                    <controls:AutoCompleteBox ItemsSource="{Binding Path=DataContext.SourceItems, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" Text="{Binding MoneySource, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" IsTextCompletionEnabled="True" FilterMode="Contains" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellEditingTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Binding="{Binding Comment}" Width="150">
+                                            <DataGridTextColumn.Header>
+                                                <TextBlock Text="Комментарий" TextAlignment="Center"/>
+                                            </DataGridTextColumn.Header>
+                                        </DataGridTextColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Label Content="{Binding TotalExpenses}" Grid.Row="1" ContentStringFormat="Итого: {0}"/>
+                            </Grid>
+
+                        </GroupBox>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+    </Viewbox>
+
+</Window>
