@@ -5,7 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:command="http://www.galasoft.ch/mvvmlight"
+        xmlns:toolkit="http://schemas.microsoft.com/wpf/2008/toolkit"
         xmlns:controls="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls.Input.Toolkit"
+        xmlns:uiControls="clr-namespace:UIControls;assembly=SearchTextBox"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
+        xmlns:model="clr-namespace:Expenses.Model"
+        xmlns:local="clr-namespace:Expenses"
         mc:Ignorable="d" Icon="../ico.ico" Title="Расходы"
         Height="599" Width="990" DataContext="{Binding Main,Source={StaticResource Locator}}">
     <i:Interaction.Triggers>
@@ -16,6 +21,7 @@
     <Viewbox Stretch="Fill">
         <Grid Height="620" Width="980">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
@@ -35,7 +41,16 @@
                 <Button Grid.Column="4" Content="Применить" Margin="5" Padding="5" Command="{Binding ApplyDateTimeFilterCommand}"/>
                 <Button Grid.Column="5" Content="Сбросить фильтр" Margin="5" Padding="5" Command="{Binding DropFilterCommand}"/>
             </Grid>
-            <TabControl Grid.Row="1">
+            <Button Content="Отчет за месяц" HorizontalAlignment="Left" Margin="247,5,0,5" Grid.Row="1" Padding="5,0" Command="{Binding MakeMounthReportCommand}"/>
+            <Button Content="Сделать резервную копию" HorizontalAlignment="Left" Margin="347,5,0,5" Grid.Row="1" Padding="5,0" Command="{Binding MakeBackUpCommand}"/>
+            <uiControls:SearchTextBox Grid.Row="1" SectionsStyle="RadioBoxStyle" x:Name="SearchTextBox" Width="230" HorizontalAlignment="Left" Margin="5">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="OnSearch" >
+                        <command:EventToCommand Command="{Binding OnSearchCommand}" PassEventArgsToCommand="True"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </uiControls:SearchTextBox>
+            <TabControl Grid.Row="2">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="SelectionChanged">
                         <command:EventToCommand Command="{Binding TabControlSelectChangedCommand}" PassEventArgsToCommand="True"/>
@@ -43,7 +58,7 @@
                 </i:Interaction.Triggers>
                 <TabItem Header="Транзакции">
                     <Grid Background="#FFE5E5E5">
-                        <DataGrid ItemsSource="{Binding ExpensesItems}" SelectedItem="{Binding DataGridSelectedItem}" SelectionMode="Extended" SelectionUnit="FullRow" CanUserAddRows="True" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" AlternatingRowBackground="LightGray" AlternationCount="2" AutoGenerateColumns="False">
+                        <DataGrid ItemsSource="{Binding ExpensesItems}" SelectedItem="{Binding DataGridSelectedItem}" SelectionMode="Extended" SelectionUnit="FullRow" CanUserAddRows="True" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" >
                             <DataGrid.Columns>
                                 <DataGridTextColumn Binding="{Binding DateTime,Converter={StaticResource DateTimeToStringConverter}}" Width="150">
                                     <DataGridTextColumn.Header>
@@ -55,11 +70,20 @@
                                         <TextBlock Text="Сумма" TextAlignment="Center"/>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                <DataGridComboBoxColumn SelectedValueBinding="{Binding Type}" Width="150" ItemsSource="{Binding Source={StaticResource TransactionType}}">
-                                    <DataGridComboBoxColumn.Header>
-                                        <TextBlock Text="Тип" TextAlignment="Center"/>
-                                    </DataGridComboBoxColumn.Header>
-                                </DataGridComboBoxColumn>
+                                
+                                
+                                
+                                
+                               <DataGridTemplateColumn Header="Тип" Width="150" >
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{Binding Source={model:EnumToItemsSource {x:Type local:TransactionType}}}" SelectedValue="{Binding Type, Converter={StaticResource EnumConverter},  ConverterParameter={x:Type local:TransactionType}}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+
+
                                 <DataGridTemplateColumn Header="Счет" Width="150" >
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
@@ -100,7 +124,7 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <DataGrid ItemsSource="{Binding IncomingMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" AlternatingRowBackground="Gray" AlternationCount="2" AutoGenerateColumns="False" >
+                                <DataGrid ItemsSource="{Binding IncomingMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" AutoGenerateColumns="False" >
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding MoneySource}" Width="100">
                                             <DataGridTextColumn.Header>
@@ -124,7 +148,7 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <DataGrid ItemsSource="{Binding BalanceMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" AlternatingRowBackground="Gray" AlternationCount="2" AutoGenerateColumns="False" >
+                                <DataGrid ItemsSource="{Binding BalanceMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" >
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding MoneySource}" Width="100">
                                             <DataGridTextColumn.Header>
@@ -149,7 +173,7 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <DataGrid ItemsSource="{Binding ExpensesMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" AlternatingRowBackground="Gray" AlternationCount="2" AutoGenerateColumns="False" >
+                                <DataGrid ItemsSource="{Binding ExpensesMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" >
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding DateTime}" Width="150">
                                             <DataGridTextColumn.Header>
@@ -189,6 +213,8 @@
                     </Grid>
                 </TabItem>
             </TabControl>
+
+
         </Grid>
     </Viewbox>
 

@@ -3,8 +3,15 @@ using GalaSoft.MvvmLight.Command;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Windows.Controls;
+using Expenses.Model;
+using Expenses.Properties;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using Microsoft.Win32;
+using UIControls;
 
 namespace Expenses
 {
@@ -12,6 +19,9 @@ namespace Expenses
     // фильтр по датам от и до 
     public class MainViewModel:ViewModelBase
     {
+        public RelayCommand MakeBackUpCommand { get; set; }
+        public RelayCommand MakeMounthReportCommand { get; set; }
+        public RelayCommand<object> OnSearchCommand { get; set; }
         public RelayCommand DropFilterCommand { get; set; }
         public DateTime FilterStartDateTime { get; set; } = DateTime.Today;
         public DateTime FilterEndDateTime { get; set; } = DateTime.Today;
@@ -21,18 +31,116 @@ namespace Expenses
         private TransactionDb db = new TransactionDb();
         public MainViewModel()
         {
-            ApplyDateTimeFilterCommand = new RelayCommand(ApplyDateTimeFilter);
+            MakeBackUpCommand = new RelayCommand(MakeBackUp);
+            MakeMounthReportCommand = new RelayCommand(MakeMounthReport);
+               ApplyDateTimeFilterCommand = new RelayCommand(ApplyDateTimeFilter);
             CellEditEndingCommand = new RelayCommand<DataGridCellEditEndingEventArgs>(CellEditEnding);
             TabControlSelectChangedCommand = new RelayCommand<SelectionChangedEventArgs>(TabControlSelectChanged);
             ApplicationClosingCommand = new RelayCommand(ApplicationClosing);
             DropFilterCommand = new RelayCommand(DropFilter);
-
+            OnSearchCommand = new RelayCommand<object>(SearchActivate);
 
             SourceItems = new ObservableCollection<string>();
             SourceItems.Add(CashSource);
             ExpensesItems = new ObservableCollection<Transaction>();
             ExpensesItems.CollectionChanged += ExpensesItems_CollectionChanged;
             LoadBase();
+        }
+
+        private void MakeBackUp()
+        {
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.Filter = "Database Files | *.db";
+            if (sfd.ShowDialog() == true)
+            {
+                db.MakeCopy(sfd.FileName);
+            }
+        }
+
+
+        [NonSerialized]
+        private Font highlightFont;
+        [NonSerialized]
+        private Font textFont;
+        private Document MakeReportHeader(string filename,string title)
+        {
+            int highlightSize = 15;
+            int textSize = 12;
+            string arialuniTff = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "ARIALUNI.TTF");
+            FontFactory.Register(arialuniTff);
+            BaseFont baseFont = BaseFont.CreateFont(arialuniTff, BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+            highlightFont = new Font(baseFont, highlightSize, iTextSharp.text.Font.BOLD, BaseColor.BLACK);
+            textFont = new Font(baseFont, textSize, iTextSharp.text.Font.NORMAL, BaseColor.BLACK);
+
+            Document document = new Document();
+            PdfWriter.GetInstance(document, new FileStream(filename, FileMode.Create));
+            document.Open();
+
+            Paragraph par = new Paragraph();
+            par.Add(new Chunk(title + "\n\n", highlightFont));
+            par.Alignment = Element.ALIGN_CENTER;
+            document.Add(par);
+
+            return document;
+        }
+
+        private void MakeMounthReport()
+        {
+            var datePeriodItems = db.GetItems(DateTime.Now.AddMonths(-1), DateTime.Now);
+            SaveFileDialog sfd = new SaveFileDialog();
+            if (sfd.ShowDialog() == true)
+            {
+                MakeReportByTime(sfd.FileName, datePeriodItems);
+            }
+        }
+
+        public bool MakeReportByTime(string filename, IEnumerable<Transaction> items)
+        {
+            try
+            {
+                var document = MakeReportHeader(filename,"Отчет за месяц");
+                PdfPTable table = new PdfPTable(5);
+                table.HorizontalAlignment = Element.ALIGN_LEFT;
+                table.WidthPercentage = 100;
+                table.SetWidths(new[] { 75f, 75f, 75f, 75f, 450f });
+                table.AddCell(new PdfPCell(new Phrase("Дата", highlightFont)) { Colspan = 1 });
+                table.AddCell(new PdfPCell(new Phrase("Сумма", highlightFont)) { Colspan = 1 });
+                table.AddCell(new PdfPCell(new Phrase("Счет", highlightFont)) { Colspan = 1 });
+                table.AddCell(new PdfPCell(new Phrase("Тип", highlightFont)) { Colspan = 1 });
+                table.AddCell(new PdfPCell(new Phrase("Комментарий", highlightFont)) { Colspan = 1 });
+                var sortingEvents = items.OrderBy(ev => ev.DateTime);
+                foreach (var transaction in sortingEvents)
+                {
+                    table.AddCell(new Phrase(DateTimeToStringConverter.Convert(transaction.DateTime), textFont));
+                    table.AddCell(new Phrase(transaction.Amount.ToString(), textFont));
+                    table.AddCell(new Phrase(transaction.MoneySource, textFont));
+                    table.AddCell(new Phrase(transaction.Type.ToString("G"), textFont));
+                    table.AddCell(new Phrase(transaction.Comment, textFont));
+                }
+
+                document.Add(table);
+                document.Close();
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+        }
+
+        public static List<string> SearchSections = new List<string> { nameof(Transaction.MoneySource), nameof(Transaction.Comment) };
+        private void SearchActivate(object args)
+        {
+            ExpensesItems.Clear();
+            SearchEventArgs searchArgs = args as SearchEventArgs;
+
+            var searchItems = db.FindByKey(searchArgs.Keyword, searchArgs.Sections);
+            foreach (var searchItem in searchItems)
+            {
+                ExpensesItems.Add(searchItem);
+            }
+            RaisePropertyChanged(nameof(ExpensesItems));
         }
 
         private void DropFilter()
@@ -57,7 +165,7 @@ namespace Expenses
 
         private void ApplicationClosing()
         {
-            
+
         }
 
         private void ApplyDateTimeFilter()

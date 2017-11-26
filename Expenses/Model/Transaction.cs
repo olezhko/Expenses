@@ -105,9 +105,13 @@ namespace Expenses
 
     public enum TransactionType
     {
+        [Description("Пополнение")]
         Incoming,
+        [Description("Расход")]
         Expense,
+        [Description("В наличные")]
         ToCash,
+        [Description("С Наличных")]
         FromCash,
     }
 
@@ -115,10 +119,10 @@ namespace Expenses
     public class TransactionDb
     {
         SQLiteConnection database;
-
+        private string databasePath;
         public TransactionDb()
         {
-            var databasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "MyData.db");
+            databasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "MyData.db");
             database = new SQLiteConnection(databasePath);
             database.CreateTable<Transaction>();
         }
@@ -142,6 +146,34 @@ namespace Expenses
                 return item.Id;
             }
             return database.Insert(item);
+        }
+
+        public IEnumerable<Transaction> FindByKey(string searchArgsKeyword, List<string> searchSections)
+        {
+            if (String.IsNullOrEmpty(searchArgsKeyword))
+            {
+                return GetItems();
+            }
+
+            if (searchSections.Count == 0)
+            {
+                return (from i in database.Table<Transaction>() where (i.Comment.Contains(searchArgsKeyword) || i.MoneySource.Contains(searchArgsKeyword)) select i).ToList();
+            }
+
+            var searchSection = searchSections[0];
+            switch (searchSection)
+            {
+                case nameof(Transaction.Comment):
+                    return (from i in database.Table<Transaction>() where i.Comment.Contains(searchArgsKeyword) select i).ToList();
+                case nameof(Transaction.MoneySource):
+                    return (from i in database.Table<Transaction>() where i.MoneySource.Contains(searchArgsKeyword) select i).ToList();
+            }
+            return GetItems();
+        }
+
+        public void MakeCopy(string filename)
+        {
+            File.Copy(databasePath,filename);
         }
     }
 }

@@ -23,6 +23,7 @@ namespace Expenses
         public MainWindow()
         {
             InitializeComponent();
+            SearchTextBox.SectionsList = MainViewModel.SearchSections;
         }
     }
 }
