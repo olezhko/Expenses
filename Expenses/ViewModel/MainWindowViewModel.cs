@@ -261,11 +261,14 @@ namespace Expenses
             {
                 if (expensesItem.Amount > 0 && expensesItem.Type == TransactionType.Incoming)
                 {
-                    if (!dic.ContainsKey(expensesItem.MoneySource))
+                    if (expensesItem.MoneySource != null)
                     {
-                        dic.Add(expensesItem.MoneySource,0);
+                        if (!dic.ContainsKey(expensesItem.MoneySource))
+                        {
+                            dic.Add(expensesItem.MoneySource, 0);
+                        }
+                        dic[expensesItem.MoneySource] += expensesItem.Amount;
                     }
-                    dic[expensesItem.MoneySource] += expensesItem.Amount;
                 }
             }
 

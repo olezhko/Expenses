@@ -46,7 +46,11 @@ namespace Expenses.Model
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            return Enum.ToObject(targetType, value);
+            var res = Enum.GetValues(typeof(TransactionType))
+                .Cast<TransactionType>()
+                .FirstOrDefault(v => GetDescription(v)== value.ToString());
+            return res;
+
         }
 
         public static string GetDescription(Enum en)
