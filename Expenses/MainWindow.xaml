@@ -58,7 +58,10 @@
                 </i:Interaction.Triggers>
                 <TabItem Header="Транзакции">
                     <Grid Background="#FFE5E5E5">
-                        <DataGrid ItemsSource="{Binding ExpensesItems}" SelectedItem="{Binding DataGridSelectedItem}" SelectionMode="Extended" SelectionUnit="FullRow" CanUserAddRows="True" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" >
+                        <DataGrid ItemsSource="{Binding ExpensesItems}" SelectedItem="{Binding DataGridSelectedItem}" CanUserDeleteRows="True" SelectionMode="Extended" SelectionUnit="FullRow" CanUserAddRows="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" >
+                            <DataGrid.InputBindings>
+                                <KeyBinding Key="Delete" Command="{Binding KeyDownCommand}"/>
+                            </DataGrid.InputBindings>
                             <DataGrid.Columns>
                                 <DataGridTextColumn Binding="{Binding DateTime,Converter={StaticResource DateTimeToStringConverter}}" Width="150">
                                     <DataGridTextColumn.Header>
@@ -70,11 +73,11 @@
                                         <TextBlock Text="Сумма" TextAlignment="Center"/>
                                     </DataGridTextColumn.Header>
                                 </DataGridTextColumn>
-                                
-                                
-                                
-                                
-                               <DataGridTemplateColumn Header="Тип" Width="150" >
+
+
+
+
+                                <DataGridTemplateColumn Header="Тип" Width="150" >
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
                                             <ComboBox ItemsSource="{Binding Source={model:EnumToItemsSource {x:Type local:TransactionType}}}" SelectedValue="{Binding Type, Converter={StaticResource EnumConverter},  ConverterParameter={x:Type local:TransactionType}}"/>
@@ -107,6 +110,7 @@
                                 <i:EventTrigger EventName="CellEditEnding">
                                     <command:EventToCommand Command="{Binding CellEditEndingCommand}" PassEventArgsToCommand="True" />
                                 </i:EventTrigger>
+
                             </i:Interaction.Triggers>
                         </DataGrid>
                     </Grid>

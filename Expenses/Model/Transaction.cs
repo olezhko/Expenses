@@ -175,5 +175,10 @@ namespace Expenses
         {
             File.Copy(databasePath,filename);
         }
+
+        public void RemoveItem(Transaction item)
+        {
+            database.Delete(item);
+        }
     }
 }

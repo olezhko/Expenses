@@ -45,6 +45,15 @@ namespace Expenses
             ExpensesItems = new ObservableCollection<Transaction>();
             ExpensesItems.CollectionChanged += ExpensesItems_CollectionChanged;
             LoadBase();
+
+            KeyDownCommand = new RelayCommand(KeyDown);
+        }
+
+        private void KeyDown()
+        {
+            var item = DataGridSelectedItem as Transaction;
+            db.RemoveItem(item);
+            LoadBase();
         }
 
         private void MakeBackUp()
@@ -151,7 +160,7 @@ namespace Expenses
         private void LoadBase()
         {
             var baseItems = db.GetItems();
-
+            ExpensesItems.Clear();
             foreach (var transaction in baseItems)
             {
                 ExpensesItems.Add(transaction);
@@ -199,7 +208,7 @@ namespace Expenses
         public object DataGridSelectedItem { get; set; }
         public ObservableCollection<Transaction> ExpensesItems { get; set; }
         public ObservableCollection<String> SourceItems { get; set; }
-
+        public RelayCommand KeyDownCommand { get; set; }
 
 
         enum DataGridColumns
