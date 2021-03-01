@@ -15,6 +15,7 @@ namespace Expenses.Model
     public class DateTimeToStringConverter:IValueConverter
     {
         private static string format = "dd.MM.yyyy HH:mm:ss";
+        private static string shortformat = "dd.MM.yyyy";
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) // from date to string
         {
             DateTime dateValue = (DateTime) value;
@@ -31,7 +32,9 @@ namespace Expenses.Model
            string dateString = value.ToString();
 
             var res = DateTime.TryParseExact(dateString, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime);
-            return res ? dateTime : DateTime.Now;
+            var res2 = DateTime.TryParseExact(dateString, shortformat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var shdateTime);
+
+            return res ? dateTime : res2? shdateTime:DateTime.Now;
         }
     }
 

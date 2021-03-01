@@ -28,12 +28,14 @@ namespace Expenses
         public RelayCommand ApplyDateTimeFilterCommand { get; set; }
         public RelayCommand<SelectionChangedEventArgs> TabControlSelectChangedCommand { get; set; }
         public RelayCommand ApplicationClosingCommand { get; set; }
+        public RelayCommand MakeReportByPeriodCommand { get; set; }
         private TransactionDb db = new TransactionDb();
         public MainViewModel()
         {
             MakeBackUpCommand = new RelayCommand(MakeBackUp);
             MakeMounthReportCommand = new RelayCommand(MakeMounthReport);
-               ApplyDateTimeFilterCommand = new RelayCommand(ApplyDateTimeFilter);
+            MakeReportByPeriodCommand = new RelayCommand(MakeReportByPeriod);
+            ApplyDateTimeFilterCommand = new RelayCommand(ApplyDateTimeFilter);
             CellEditEndingCommand = new RelayCommand<DataGridCellEditEndingEventArgs>(CellEditEnding);
             TabControlSelectChangedCommand = new RelayCommand<SelectionChangedEventArgs>(TabControlSelectChanged);
             ApplicationClosingCommand = new RelayCommand(ApplicationClosing);
@@ -47,6 +49,16 @@ namespace Expenses
             LoadBase();
 
             KeyDownCommand = new RelayCommand(KeyDown);
+        }
+
+        private void MakeReportByPeriod()
+        {
+            var datePeriodItems = db.GetItems(FilterStartDateTime, FilterEndDateTime);
+            SaveFileDialog sfd = new SaveFileDialog();
+            if (sfd.ShowDialog() == true)
+            {
+                MakeReportByTime(sfd.FileName, datePeriodItems);
+            }
         }
 
         private void KeyDown()
@@ -265,7 +277,7 @@ namespace Expenses
         public ObservableCollection<IncomingMoneySource> IncomingMoneyItems { get; set; }
         private void CalculateIncoming()
         {
-            var dic = new Dictionary<string,int>();
+            var dic = new Dictionary<string,double>();
             foreach (var expensesItem in ExpensesItems)
             {
                 if (expensesItem.Amount > 0 && expensesItem.Type == TransactionType.Incoming)
@@ -295,7 +307,7 @@ namespace Expenses
         public ObservableCollection<IncomingMoneySource> BalanceMoneyItems { get; set; }
         private void CalculateBalance()
         {
-            var dic = new Dictionary<string, int>();
+            var dic = new Dictionary<string, double>();
             dic.Add(CashSource,0);
             foreach (var expensesItem in ExpensesItems)
             {

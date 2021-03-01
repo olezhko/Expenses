@@ -42,7 +42,7 @@
                 <Button Grid.Column="5" Content="Сбросить фильтр" Margin="5" Padding="5" Command="{Binding DropFilterCommand}"/>
             </Grid>
             <Button Content="Отчет за месяц" HorizontalAlignment="Left" Margin="247,5,0,5" Grid.Row="1" Padding="5,0" Command="{Binding MakeMounthReportCommand}"/>
-            <Button Content="Сделать резервную копию" HorizontalAlignment="Left" Margin="347,5,0,5" Grid.Row="1" Padding="5,0" Command="{Binding MakeBackUpCommand}"/>
+            <Button Content="Сделать резервную копию" HorizontalAlignment="Left" Margin="522,5,0,5" Grid.Row="1" Padding="5,0" Command="{Binding MakeBackUpCommand}"/>
             <uiControls:SearchTextBox Grid.Row="1" SectionsStyle="RadioBoxStyle" x:Name="SearchTextBox" Width="230" HorizontalAlignment="Left" Margin="5">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="OnSearch" >
@@ -58,7 +58,7 @@
                 </i:Interaction.Triggers>
                 <TabItem Header="Транзакции">
                     <Grid Background="#FFE5E5E5">
-                        <DataGrid ItemsSource="{Binding ExpensesItems}" SelectedItem="{Binding DataGridSelectedItem}" CanUserDeleteRows="True" SelectionMode="Extended" SelectionUnit="FullRow" CanUserAddRows="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" >
+                        <DataGrid ItemsSource="{Binding ExpensesItems}" SelectedItem="{Binding DataGridSelectedItem}" CanUserDeleteRows="True" SelectionMode="Extended" SelectionUnit="FullRow" CanUserAddRows="True" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" Name="MainDataGrid">
                             <DataGrid.InputBindings>
                                 <KeyBinding Key="Delete" Command="{Binding KeyDownCommand}"/>
                             </DataGrid.InputBindings>
@@ -177,7 +177,7 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <DataGrid ItemsSource="{Binding ExpensesMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" >
+                                <DataGrid Name="ExpensesDataGrid" ItemsSource="{Binding ExpensesMoneyItems}" CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False" CanUserResizeRows="False" CanUserSortColumns="True" >
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Binding="{Binding DateTime}" Width="150">
                                             <DataGridTextColumn.Header>
@@ -217,6 +217,7 @@
                     </Grid>
                 </TabItem>
             </TabControl>
+            <Button Content="Отчет за выбранный период" HorizontalAlignment="Left" Margin="347,5,0,5" Grid.Row="1" Padding="5,0" Command="{Binding MakeReportByPeriodCommand}"/>
 
 
         </Grid>

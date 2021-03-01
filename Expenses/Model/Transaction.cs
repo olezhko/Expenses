@@ -27,8 +27,8 @@ namespace Expenses
             }
         }
 
-        private int _amount;
-        public int Amount
+        private double _amount;
+        public double Amount
         {
             get { return _amount; }
             set
@@ -89,7 +89,7 @@ namespace Expenses
 
     public class IncomingMoneySource : INotifyPropertyChanged
     {
-        public int Amount { get; set; }
+        public double Amount { get; set; }
         public string MoneySource { get; set; }
 
 
